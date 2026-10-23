@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Login</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f5f7; display: flex; justify-content: center; align-items: center; padding: 20px 15px; min-height: 100vh; }
+    .card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 100%; max-width: 380px; text-align: center; }
+    .card h1 { font-size: 1.3rem; color: #0f172a; margin-bottom: 6px; }
+    .card p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; }
+    .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; outline: none; }
+    .submit-btn { background: #2563eb; color: white; border: none; width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 600; border-radius: 8px; cursor: pointer; margin-top: 5px; }
+    .link-text { margin-top: 15px; font-size: 0.8rem; color: #64748b; }
+    .link-text a { color: #2563eb; text-decoration: none; font-weight: bold; }
+    .forgot-link { display: block; font-size: 0.75rem; color: #0284c7; text-align: right; margin-bottom: 12px; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1><i class="fa-solid fa-right-to-bracket" style="color:#2563eb;"></i> Vendor Login</h1>
+    <p>Sign in to access your Store Dashboard</p>
+    <input type="text" id="whatsappNumber" class="input-field" placeholder="WhatsApp Number">
+    <input type="password" id="password" class="input-field" placeholder="Password">
+    <a href="#" class="forgot-link" onclick="forgotPassword()">Forgot Password?</a>
+    <button class="submit-btn" onclick="loginVendor()">Login to Dashboard</button>
+    <div class="link-text">
+      Account i la nei lo em? <a href="/register.html">Register / Sign Up</a>
+    </div>
+  </div>
+  <script>
+    async function loginVendor() {
+      const whatsappNumber = document.getElementById('whatsappNumber').value;
+      const password = document.getElementById('password').value;
+      if(!whatsappNumber || !password) { alert("Please fill all fields!"); return; }
+
+      const res = await fetch('/api/vendors/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappNumber, password })
+      });
+      const data = await res.json();
+      if(data.success) {
+        localStorage.setItem('loggedInStoreId', data.storeId);
+        window.location.href = `/admin.html?storeId=${data.storeId}`;
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function forgotPassword() {
+      const setRes = await fetch('/api/admin/settings');
+      const settings = await setRes.json();
+      const adminWa = settings.adminWhatsapp || '919876543210';
+      const waUrl = `https://wa.me/${adminWa}?text=Hello%20SuperAdmin,%20ka%20Password%20ka%20theihnghilh%20a,%20min%20reset%20sak%20rawh.`;
+      window.open(waUrl, '_blank');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Registration</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f5f7; display: flex; justify-content: center; align-items: center; padding: 20px 15px; min-height: 100vh; }
+    .card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 100%; max-width: 420px; text-align: center; }
+    .card h1 { font-size: 1.3rem; color: #0f172a; margin-bottom: 6px; }
+    .card p { font-size: 0.8rem; color: #64748b; margin-bottom: 20px; }
+    .input-field, .select-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; outline: none; }
+    .label { font-size: 0.8rem; font-weight: 700; color: #334155; text-align: left; display: block; margin-bottom: 4px; }
+    .submit-btn { background: #2563eb; color: white; border: none; width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 600; border-radius: 8px; cursor: pointer; margin-top: 5px; }
+    .link-text { margin-top: 15px; font-size: 0.8rem; color: #64748b; }
+    .link-text a { color: #2563eb; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1><i class="fa-solid fa-store" style="color:#2563eb;"></i> Register Your Store</h1>
+    <p>Choose a plan or start with a 7-day free trial!</p>
+    <label class="label">Store Details:</label>
+    <input type="text" id="storeName" class="input-field" placeholder="Dawr Hming (e.g. Aizawl Fashion)">
+    <input type="text" id="whatsappNumber" class="input-field" placeholder="WhatsApp Number">
+    <input type="password" id="password" class="input-field" placeholder="Create Password">
+    
+    <label class="label">Select Subscription Plan:</label>
+    <select id="planType" class="select-field">
+      <option value="trial">🎁 7 Days Free Trial - ₹0</option>
+      <option value="1">1 Month Plan - ₹149</option>
+      <option value="3">3 Months Plan - ₹399</option>
+      <option value="12">1 Year Plan - ₹1,199</option>
+    </select>
+    <button class="submit-btn" onclick="registerVendor()">Submit Registration</button>
+    <div class="link-text">
+      Account i nei tawh em? <a href="/login.html">Login tah hian hmet rawh</a>
+    </div>
+  </div>
+  <script>
+    async function registerVendor() {
+      const storeName = document.getElementById('storeName').value;
+      const whatsappNumber = document.getElementById('whatsappNumber').value;
+      const password = document.getElementById('password').value;
+      const planType = document.getElementById('planType').value;
+      if(!storeName || !whatsappNumber || !password) { alert("Fill all fields!"); return; }
+
+      const res = await fetch('/api/vendors/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeName, whatsappNumber, password, planType })
+      });
+      const data = await res.json();
+      if(data.success) {
+        localStorage.setItem('loggedInStoreId', data.storeId);
+        alert("Registration Successful!");
+        window.location.href = `/admin.html?storeId=${data.storeId}`;
+      } else { alert(data.message); }
+    }
+  </script>
+</body>
+</html>

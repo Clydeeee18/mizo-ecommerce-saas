@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mizo Storefront</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f1f5f9; color: #0f172a; padding-bottom: 50px; }
+    header { background: #0f172a; color: #fff; padding: 16px 12px; text-align: center; }
+    header h1 { font-size: 1.2rem; margin-bottom: 2px; font-weight: 800; }
+    
+    /* Announcement Banner */
+    .announcement-banner { background: #fef3c7; color: #b45309; padding: 8px 12px; font-size: 0.75rem; font-weight: 700; text-align: center; border-bottom: 1px solid #fde68a; display: none; }
+
+    .container { max-width: 500px; margin: 10px auto; padding: 0 8px; }
+    
+    .cat-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: none; }
+    .cat-bar::-webkit-scrollbar { display: none; }
+    .cat-pill { background: #fff; color: #475569; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; cursor: pointer; border: 1px solid #cbd5e1; }
+    .cat-pill.active { background: #2563eb; color: white; border-color: #2563eb; }
+    
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .product-card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+    
+    .promo-badge { position: absolute; top: 6px; left: 6px; background: #ef4444; color: white; font-size: 0.55rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; z-index: 10; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    
+    .slider-container { position: relative; width: 100%; padding-top: 100%; background: #f8fafc; overflow: hidden; }
+    .slider-track { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+    .slider-track::-webkit-scrollbar { display: none; }
+    .slider-track img { width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; }
+    
+    .dots-container { position: absolute; bottom: 6px; left: 0; right: 0; display: flex; justify-content: center; gap: 4px; z-index: 5; }
+    .dot { width: 5px; height: 5px; background: rgba(255,255,255,0.6); border-radius: 50%; }
+    .dot.active { background: #2563eb; width: 12px; border-radius: 4px; }
+
+    .product-info { padding: 10px; flex-grow: 1; }
+    .product-name { font-size: 0.85rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; line-height: 1.2; height: 2.4em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .product-price { font-size: 0.95rem; font-weight: 800; color: #0284c7; }
+
+    .buy-btn { background: #22c55e; color: white; border: none; width: 100%; padding: 8px; font-size: 0.75rem; font-weight: 800; border-radius: 6px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 4px; }
+    
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: flex-end; }
+    .modal-sheet { background: #fff; width: 100%; max-width: 500px; border-radius: 16px 16px 0 0; padding: 20px 16px; animation: slideUp 0.25s ease-out; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    
+    .sheet-title { font-size: 1rem; font-weight: 800; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: #f1f5f9; border: none; font-size: 1rem; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; color: #64748b; }
+    
+    .opt-group { margin-bottom: 12px; }
+    .opt-label { font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; display: block; }
+    .chip-container { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    .chip.selected { background: #2563eb; color: #fff; border-color: #2563eb; }
+    
+    .input-box { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem; outline: none; }
+    .confirm-btn { background: #22c55e; color: white; border: none; width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 800; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 5px; }
+
+    .locked-screen { background: #fff; padding: 30px 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-top: 30px; }
+    .locked-screen i { font-size: 3rem; color: #ef4444; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="store-title">Loading Store...</h1>
+    <p style="font-size: 0.75rem; color: #94a3b8;">WhatsApp Direct Storefront</p>
+  </header>
+
+  <!-- Announcement Banner Display -->
+  <div id="announcementBanner" class="announcement-banner"></div>
+
+  <div class="container" id="main-container">
+    <div class="cat-bar" id="cat-bar"></div>
+    <div id="product-grid" class="grid"></div>
+  </div>
+
+  <!-- Order Sheet Modal -->
+  <div class="modal-overlay" id="orderModal">
+    <div class="modal-sheet">
+      <div class="sheet-title">
+        <span id="modalProdName">Product Title</span>
+        <button class="close-btn" onclick="closeOrderModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div style="font-size:0.95rem; font-weight:800; color:#0284c7; margin-bottom:12px;" id="modalProdPrice">₹0</div>
+
+      <div id="modalColorGroup" class="opt-group" style="display:none;">
+        <label class="opt-label">Select Color:</label>
+        <div class="chip-container" id="modalColors"></div>
+      </div>
+
+      <div id="modalSizeGroup" class="opt-group" style="display:none;">
+        <label class="opt-label">Select Size / Storage:</label>
+        <div class="chip-container" id="modalSizes"></div>
+      </div>
+
+      <div class="opt-group">
+        <label class="opt-label">Customer Info:</label>
+        <input type="text" id="custName" class="input-box" placeholder="I Hming (Your Name)">
+        <input type="text" id="custAddress" class="input-box" placeholder="Delivery Address (Veng / Hmun)">
+      </div>
+
+      <button class="confirm-btn" onclick="submitOrder()"><i class="fa-brands fa-whatsapp"></i> Confirm & Open WhatsApp</button>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeId = urlParams.get('store') || 'mizo-apple-store';
+    let allProducts = [];
+    let currentStore = null;
+    let selectedCat = 'ALL';
+    let activeProduct = null;
+    let selectedColor = '';
+    let selectedSize = '';
+
+    async function loadStore() {
+      const res = await fetch(`/api/store/${storeId}`);
+      const data = await res.json();
+      currentStore = data.store;
+      document.getElementById('store-title').innerText = currentStore.storeName;
+
+      // Announcement Banner
+      if(currentStore.announcement) {
+        const banner = document.getElementById('announcementBanner');
+        banner.innerText = currentStore.announcement;
+        banner.style.display = 'block';
+      }
+
+      if(currentStore.status !== 'active') {
+        document.getElementById('main-container').innerHTML = `
+          <div class="locked-screen">
+            <i class="fa-solid fa-store-slash"></i>
+            <h2>Store Temporarily Inactive</h2>
+            <p>This store is currently inactive or expired.</p>
+          </div>
+        `;
+        return;
+      }
+
+      allProducts = currentStore.products || [];
+      renderCategoryBar();
+      renderProducts();
+    }
+
+    function renderCategoryBar() {
+      const catBar = document.getElementById('cat-bar');
+      const categories = ['ALL', ...new Set(allProducts.map(p => p.category || 'General'))];
+      catBar.innerHTML = '';
+      categories.forEach(cat => {
+        catBar.innerHTML += `<button class="cat-pill ${cat === selectedCat ? 'active' : ''}" onclick="filterCat('${cat}')">${cat}</button>`;
+      });
+    }
+
+    function filterCat(cat) {
+      selectedCat = cat;
+      renderCategoryBar();
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('product-grid');
+      grid.innerHTML = '';
+      const filtered = selectedCat === 'ALL' ? allProducts : allProducts.filter(p => (p.category || 'General') === selectedCat);
+
+      if(filtered.length === 0) {
+        grid.innerHTML = '<p style="font-size:0.8rem; color:#64748b; grid-column: span 2; text-align:center; padding: 20px;">Product a la awm lo.</p>';
+        return;
+      }
+
+      filtered.forEach(p => {
+        const images = (p.images && p.images.length > 0) ? p.images : ["https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg?auto=compress&cs=tinysrgb&w=600"];
+        
+        let imgsHtml = '';
+        let dotsHtml = '';
+
+        images.forEach((imgSrc, idx) => {
+          imgsHtml += `<img src="${imgSrc}" alt="${p.name}">`;
+          dotsHtml += `<div class="dot ${idx === 0 ? 'active' : ''}"></div>`;
+        });
+
+        grid.innerHTML += `
+          <div class="product-card">
+            ${p.badge ? `<div class="promo-badge">${p.badge}</div>` : ''}
+            <div>
+              <div class="slider-container">
+                <div class="slider-track" onscroll="updateDots(this, ${p.id})">
+                  ${imgsHtml}
+                </div>
+                ${images.length > 1 ? `<div class="dots-container" id="dots-${p.id}">${dotsHtml}</div>` : ''}
+              </div>
+              <div class="product-info">
+                <div class="product-name">${p.name}</div>
+                <div class="product-price">₹${p.price.toLocaleString()}</div>
+              </div>
+            </div>
+            <div style="padding: 0 8px 8px 8px;">
+              <button class="buy-btn" onclick="openOrderModal(${p.id})">
+                <i class="fa-brands fa-whatsapp"></i> Buy Now
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function updateDots(el, pId) {
+      const scrollPos = el.scrollLeft;
+      const width = el.offsetWidth;
+      const activeIdx = Math.round(scrollPos / width);
+      const dotsContainer = document.getElementById(`dots-${pId}`);
+      if(dotsContainer) {
+        const dots = dotsContainer.querySelectorAll('.dot');
+        dots.forEach((dot, idx) => {
+          if(idx === activeIdx) dot.classList.add('active');
+          else dot.classList.remove('active');
+        });
+      }
+    }
+
+    function openOrderModal(pId) {
+      activeProduct = allProducts.find(p => p.id === pId);
+      if(!activeProduct) return;
+
+      selectedColor = '';
+      selectedSize = '';
+
+      document.getElementById('modalProdName').innerText = activeProduct.name;
+      document.getElementById('modalProdPrice').innerText = `₹${activeProduct.price.toLocaleString()}`;
+
+      const colorGroup = document.getElementById('modalColorGroup');
+      const colorContainer = document.getElementById('modalColors');
+      colorContainer.innerHTML = '';
+      if(activeProduct.colors && activeProduct.colors.length > 0) {
+        colorGroup.style.display = 'block';
+        activeProduct.colors.forEach(c => {
+          colorContainer.innerHTML += `<div class="chip" onclick="selectChip(this, 'color', '${c}')">${c}</div>`;
+        });
+      } else { colorGroup.style.display = 'none'; }
+
+      const sizeGroup = document.getElementById('modalSizeGroup');
+      const sizeContainer = document.getElementById('modalSizes');
+      sizeContainer.innerHTML = '';
+      if(activeProduct.sizes && activeProduct.sizes.length > 0) {
+        sizeGroup.style.display = 'block';
+        activeProduct.sizes.forEach(s => {
+          sizeContainer.innerHTML += `<div class="chip" onclick="selectChip(this, 'size', '${s}')">${s}</div>`;
+        });
+      } else { sizeGroup.style.display = 'none'; }
+
+      document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function closeOrderModal() {
+      document.getElementById('orderModal').style.display = 'none';
+    }
+
+    function selectChip(el, type, val) {
+      const parent = el.parentElement;
+      Array.from(parent.children).forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      if(type === 'color') selectedColor = val;
+      if(type === 'size') selectedSize = val;
+    }
+
+    function submitOrder() {
+      if(activeProduct.colors && activeProduct.colors.length > 0 && !selectedColor) {
+        alert("Please select a Color!"); return;
+      }
+      if(activeProduct.sizes && activeProduct.sizes.length > 0 && !selectedSize) {
+        alert("Please select Size / Storage!"); return;
+      }
+
+      const custName = document.getElementById('custName').value.trim();
+      const custAddress = document.getElementById('custAddress').value.trim();
+
+      if(!custName || !custAddress) {
+        alert("I Hming leh Address chhut lut rawh!"); return;
+      }
+
+      let msg = `Hello *${currentStore.storeName}*,\n\n🛒 *ORDER THAR:*\n📱 *Product:* ${activeProduct.name}\n💰 *Price:* ₹${activeProduct.price.toLocaleString()}`;
+      if(selectedColor) msg += `\n🎨 *Color:* ${selectedColor}`;
+      if(selectedSize) msg += `\n📏 *Size/Storage:* ${selectedSize}`;
+      msg += `\n\n👤 *CUSTOMER DETAILS:*\nName: ${custName}\n📍 Address: ${custAddress}`;
+
+      const cleanNum = currentStore.whatsappNumber.replace(/[^0-9]/g, '');
+      const encodedMsg = encodeURIComponent(msg);
+
+      closeOrderModal();
+      window.location.href = `whatsapp://send?phone=${cleanNum}&text=${encodedMsg}`;
+    }
+
+    loadStore();
+  </script>
+</body>
+</html>

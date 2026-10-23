@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Admin Panel</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f1f5f9; color: #0f172a; padding-bottom: 50px; }
+    header { background: #0f172a; color: #fff; padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 1.1rem; }
+    .container { max-width: 500px; margin: 15px auto; padding: 0 10px; }
+    .card { background: #fff; padding: 16px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); margin-bottom: 15px; }
+    .card h2 { font-size: 0.95rem; margin-bottom: 12px; color: #0f172a; }
+    .input-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none; }
+    .btn { background: #2563eb; color: white; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+    .product-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; }
+    .del-btn { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="store-heading">Admin Panel</h1>
+    <button onclick="logout()" style="background:#ef4444; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:0.75rem; cursor:pointer;">Logout</button>
+  </header>
+  
+  <div class="container">
+    <!-- Store Link Card -->
+    <div class="card" style="background:#eff6ff; border:1px solid #bfdbfe;">
+      <h2 style="color:#1d4ed8;"><i class="fa-solid fa-link"></i> I Store Link</h2>
+      <p style="font-size:0.75rem; color:#475569; margin-bottom:6px;">He link hi customer-te pe la, direct-in i dawrah an rawn lut thei ang:</p>
+      <input type="text" id="store-link-input" class="input-field" readonly style="background:#fff; font-weight:700; color:#2563eb; margin-bottom:0;">
+    </div>
+
+    <!-- Announcement / Offer Banner Edit Card -->
+    <div class="card">
+      <h2><i class="fa-solid fa-bullhorn"></i> Store Announcement / Offer Banner</h2>
+      <textarea id="announcementInput" class="input-field" rows="2" placeholder="Entirnan: 🔥 50% Off Today on all items!"></textarea>
+      <button class="btn" style="background:#059669;" onclick="saveAnnouncement()">Update Offer Banner</button>
+    </div>
+
+    <!-- Add Product Card -->
+    <div class="card">
+      <h2><i class="fa-solid fa-plus"></i> Upload New Product</h2>
+      <form id="productForm">
+        <input type="text" id="name" class="input-field" placeholder="Product Name" required>
+        <input type="number" id="price" class="input-field" placeholder="Price (₹)" required>
+        
+        <label style="font-size:0.75rem; color:#64748b; font-weight:700;">Category:</label>
+        <select id="category" class="input-field">
+          <option value="General">General</option>
+        </select>
+        <input type="text" id="newCategory" class="input-field" placeholder="Or type new category name">
+
+        <input type="text" id="badge" class="input-field" placeholder="Promo Badge (Eg: SALE, HOT, 50% OFF)">
+        <input type="text" id="colors" class="input-field" placeholder="Colors comma separated (Eg: Red, Blue, Black)">
+        <input type="text" id="sizes" class="input-field" placeholder="Sizes / Storage comma separated (Eg: S, M, L or 128GB)">
+        
+        <label style="font-size:0.75rem; color:#64748b; font-weight:700;">Photos (Up to 5):</label>
+        <input type="file" id="images" class="input-field" accept="image/*" multiple max="5">
+        
+        <button type="submit" class="btn">Post Product (Top) <i class="fa-solid fa-upload"></i></button>
+      </form>
+    </div>
+
+    <!-- Product List Card -->
+    <div class="card">
+      <h2><i class="fa-solid fa-boxes-stacked"></i> Manage Products</h2>
+      <div id="product-list">Loading products...</div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeId = urlParams.get('storeId');
+    if(!storeId) { window.location.href = '/login.html'; }
+
+    async function loadAdminData() {
+      const res = await fetch(`/api/store/${storeId}`);
+      const data = await res.json();
+      const store = data.store;
+
+      document.getElementById('store-heading').innerText = store.storeName + " Admin";
+      document.getElementById('store-link-input').value = window.location.origin + `/?store=${store.id}`;
+      document.getElementById('announcementInput').value = store.announcement || '';
+
+      // Categories
+      const catSelect = document.getElementById('category');
+      const cats = ['General', ...new Set((store.products || []).map(p => p.category))];
+      catSelect.innerHTML = '';
+      cats.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+
+      // Products
+      const list = document.getElementById('product-list');
+      list.innerHTML = '';
+      if(!store.products || store.products.length === 0) {
+        list.innerHTML = '<p style="font-size:0.8rem; color:#64748b;">No products uploaded yet.</p>';
+        return;
+      }
+
+      store.products.forEach(p => {
+        list.innerHTML += `
+          <div class="product-item">
+            <div><strong>${p.name}</strong><br>₹${p.price.toLocaleString()} | ${p.category}</div>
+            <button class="del-btn" onclick="deleteProduct(${p.id})">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    async function saveAnnouncement() {
+      const announcement = document.getElementById('announcementInput').value;
+      const res = await fetch(`/api/store/${storeId}/announcement`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ announcement })
+      });
+      const data = await res.json();
+      alert(data.message);
+    }
+
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('name', document.getElementById('name').value);
+      formData.append('price', document.getElementById('price').value);
+      
+      let cat = document.getElementById('newCategory').value.trim() || document.getElementById('category').value;
+      formData.append('category', cat);
+      formData.append('badge', document.getElementById('badge').value);
+      formData.append('colors', document.getElementById('colors').value);
+      formData.append('sizes', document.getElementById('sizes').value);
+
+      const files = document.getElementById('images').files;
+      for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i]);
+      }
+
+      const res = await fetch(`/api/store/${storeId}/products`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if(data.success) {
+        alert("Product posted successfully at the top!");
+        document.getElementById('productForm').reset();
+        loadAdminData();
+      } else {
+        alert(data.message);
+      }
+    });
+
+    async function deleteProduct(productId) {
+      if(!confirm("Delete this product?")) return;
+      await fetch(`/api/store/${storeId}/products/${productId}`, { method: 'DELETE' });
+      loadAdminData();
+    }
+
+    function logout() {
+      window.location.href = '/login.html';
+    }
+
+    loadAdminData();
+  </script>
+</body>
+</html>

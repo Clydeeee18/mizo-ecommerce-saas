@@ -1,0 +1,62 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Public folder static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Sample iPhone Store Data
+let sampleStore = {
+  storeId: "mizo-apple-store",
+  storeName: "Mizo Apple Store",
+  whatsappNumber: "919876543210",
+  products: [
+    {
+      id: 1,
+      name: "iPhone 13 (Blue, 128GB)",
+      price: 34500,
+      details: "Battery Health 88%, Scratchless Condition",
+      image: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=500"
+    },
+    {
+      id: 2,
+      name: "iPhone 15 Pro (Natural Titanium, 256GB)",
+      price: 72000,
+      details: "Brand New Sealed Pack, Full Warranty",
+      image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500"
+    }
+  ]
+};
+
+// 1. Get Store Data
+app.get('/api/store', (req, res) => {
+  res.json(sampleStore);
+});
+
+// 2. Generate WhatsApp Link
+app.post('/api/order/whatsapp', (req, res) => {
+  const { productName, price, customerName, customerAddress } = req.body;
+
+  const message = `Hello *${sampleStore.storeName}*,\n\n` +
+                  `Order thar a awm e:\n` +
+                  `📱 *Product:* ${productName}\n` +
+                  `💰 *Price:* ₹${price}\n\n` +
+                  `*Customer Details:*\n` +
+                  `👤 Name: ${customerName}\n` +
+                  `📍 Address: ${customerAddress}\n\n` +
+                  `Order hi confirm a duh e!`;
+
+  const waUrl = `https://wa.me/${sampleStore.whatsappNumber}?text=${encodeURIComponent(message)}`;
+  res.json({ waUrl });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("=================================");
+  console.log(`Server Active: http://localhost:${PORT}`);
+  console.log("=================================");
+});

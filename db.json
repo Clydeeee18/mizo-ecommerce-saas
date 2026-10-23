@@ -1,0 +1,68 @@
+{
+  "adminSettings": {
+    "upiId": "yourupi@upi",
+    "adminWhatsapp": "919876543210"
+  },
+  "vendors": [
+    {
+      "id": "jskskwj",
+      "storeName": "Jskskwj",
+      "whatsappNumber": "918729821440",
+      "password": "kdishe",
+      "status": "active",
+      "planType": "7 Days Trial",
+      "expiryDate": "2026-10-30T08:10:58.079Z",
+      "products": [
+        {
+          "id": 1792744129408,
+          "name": "Kskshs",
+          "price": 6464,
+          "category": "shoes",
+          "badge": "Nsjs",
+          "colors": [
+            "Jsjs",
+            "jse",
+            "je"
+          ],
+          "sizes": [
+            "Hss",
+            "jeeh",
+            "jee"
+          ],
+          "images": [
+            "/uploads/1792744129204-1000917992.jpg",
+            "/uploads/1792744129269-1000917975.jpg",
+            "/uploads/1792744129359-1000917987.jpg",
+            "/uploads/1792744129373-1000917991.jpg",
+            "/uploads/1792744129383-1000918007.jpg"
+          ]
+        },
+        {
+          "id": 1792743098494,
+          "name": "Sjsksj",
+          "price": 565959,
+          "details": "Nzjsksh",
+          "category": "General",
+          "badge": "",
+          "colors": [
+            "Blue",
+            "green",
+            "red"
+          ],
+          "sizes": [
+            "128",
+            "130",
+            "103"
+          ],
+          "images": [
+            "/uploads/1792743098384-1000918007.jpg",
+            "/uploads/1792743098431-1000917987.jpg",
+            "/uploads/1792743098455-1000917991.jpg",
+            "/uploads/1792743098465-1000917975.jpg",
+            "/uploads/1792743098473-1000917992.jpg"
+          ]
+        }
+      ]
+    }
+  ]
+}
